@@ -1,7 +1,7 @@
 const readline = require('readline');
 const fs = require('fs');
-const file = readline.createInterface({
-    input: fs.createReadStream('./market_orders_dataset.json'),
+const trustedOrders = readline.createInterface({
+    input: fs.createReadStream('./market_orders_trusted.json'),
     output: process.stdout,
     terminal: false
 });
@@ -62,22 +62,33 @@ const csvKeys = Object.keys(exampleParsed).join(',') + '\n';
 const locationIds = new Set();
 const itemIds = new Set();
 
+function getItemTier(itemId) {
+    return Number(itemId.match(/T\d/g)?.[0]?.[1] ?? 1)
+}
+
+function getItemSubtier(itemId) {
+    return Number(itemId.match(/(@\d)|(LEVEL\d)/g)?.[0]?.[1] ?? 0);
+
+}
+
 function generateCrazyOrder() {
     const locations = Array.from(locationIds);
     const items = Array.from(itemIds);
     const randomLocation = locations[Math.floor(Math.random() * locations.length)];
     const randomItemId = items[Math.floor(Math.random() * items.length)];
+    const tier = getItemTier(randomItemId);
+    const subtier = getItemSubtier(randomItemId);
 
     const crazyOrder = {
         OrderId: Math.ceil(Math.random() * 1e11),
         ItemId: randomItemId,
         LocationId: String(randomLocation),
         QualityLevel: Math.ceil(Math.random() * 5),
-        UnitPriceSilver: Math.ceil(Math.random() * 1e7),
+        UnitPriceSilver: Math.ceil(Math.random() * 1e9),
         Amount: Math.ceil(Math.random() * 1000),
         AuctionType: Math.random() >= 0.5 ? 'offer' : 'request',
-        Tier: Math.ceil(Math.random() * 4) + 4,
-        Subtier: Math.ceil(Math.random() * 4),
+        Tier: tier,
+        Subtier: subtier,
         Trusted: false,
     }
 
@@ -93,10 +104,10 @@ fs.writeFile('./market_order.csv', csvKeys, { encoding: 'utf8' }, (error) => {
 
 let lineCounter = 0;
 
-file.on('line', (line) => {
+trustedOrders.on('line', (line) => {
     const parsed = JSON.parse(line);
-    const tier = parsed.ItemId.match(/T\d/g)?.[0]?.[1] ?? 1;
-    const subtier = parsed.ItemId.match(/@\d/g)?.[0]?.[1] ?? 0;
+    const tier = getItemTier(parsed.ItemId);
+    const subtier = getItemSubtier(parsed.ItemId);
     const csvReady = {
         // _id: parsed._id.$oid,
         OrderId: Number(parsed.OrderId.$numberDouble),
@@ -134,20 +145,22 @@ file.on('line', (line) => {
 });
 
 
-file.on('close', () => {
+trustedOrders.on('close', () => {
+    const crazyOrders = [];
     for (let counter = 0; counter < 1e6; counter++) {
         const crazyOrder = generateCrazyOrder();
         const values = Object.values(crazyOrder).join(',') + "\n";
-
-        fs.writeFile('./market_order.csv', values, { encoding: 'utf8', flag: 'a+' }, (error) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-        });
+        crazyOrders.push(values);
 
         if (counter % 1e5 === 0) {
-            console.log(`write ${counter} untrusted lines`);
+            console.log(`generate ${counter} untrusted lines`);
         }
     }
+
+    fs.writeFile('./market_order.csv', crazyOrders.join(''), { encoding: 'utf8', flag: 'a+' }, (error) => {
+        if (error) {
+            console.error(error);
+            return;
+        }
+    });
 });
