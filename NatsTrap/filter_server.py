@@ -51,7 +51,7 @@ def predict_relevance():
         amount = order['Amount']
         auctionType = order['AuctionType']
         subtier = order['EnchantmentLevel']
-        print(itemId)
+
         tier = re.search(r'T(\d)', itemId)
 
         try:
@@ -69,21 +69,15 @@ def predict_relevance():
 
         parsed_orders.append([orderId, itemId, locationId, qualityLevel, unitPriceSilver, amount, auctionType, tier, subtier])
 
-    print(orders[0])
-    print(parsed_orders[0])
-
     # Масштабируем
     X_test = np.array(parsed_orders)
     X_scaled = ss.transform(X_test)
-
-    print(X_scaled)
 
     # Используем метод модели predict для
     # получения прогноза для доверенности данных
     result = rfc.predict(X_scaled)
     trusts = labelEncoderTrusted.inverse_transform(result)
 
-    print(trusts)
     relevance =  round(np.count_nonzero(trusts) / len(trusts) * 100)
     isRelevant = RELEVANCE_PERCENTILE <= relevance
     print(isRelevant, relevance)
