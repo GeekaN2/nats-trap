@@ -2,7 +2,8 @@ const NATS = require('nats');
 const axios = require('axios');
 const qs = require('qs');
 
-const natsUrl = 'nats://public:thenewalbiondata@albion-online-data.com:4222';
+const natsUrl = 'nats://admin:admin@localhost:4222';
+// const natsUrl = 'nats://public:thenewalbiondata@albion-online-data.com:4222';
 const nc = NATS.connect(natsUrl);
 console.log(`Connection to NATS AOD WEST: ${natsUrl}`);
 
