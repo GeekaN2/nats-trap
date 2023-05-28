@@ -17,7 +17,7 @@ ss = joblib.load('./build/standardscaler.pkl')
 # Константа, на которую умножены цены ордеров
 UNIT_PRICE_SILVER_MULTIPLIER = 10000
 
-# Если процент релевантным ордеров меньше 60, тогда считаем весь объекм ордеров считаем нерелвантным
+# Если процент релевантным ордеров меньше 60, тогда весь массив ордеров считаем нерелевантным
 RELEVANCE_PERCENTILE = 60
 
 # Загружаем обученную модель из текущего каталога
@@ -82,6 +82,37 @@ def predict_relevance():
 
     # Возвращаем результат
     return jsonify(isRelevant=bool(isRelevant), relevance=relevance, status='ok')
+
+
+@app.route('/predict')
+def predict_iris():
+    orderId = request.args.get('OrderId')
+    itemId = request.args.get('ItemId')
+    locationId = request.args.get('LocationId')
+    qualityLevel = request.args.get('QualityLevel')
+    unitPriceSilver = int(request.args.get('UnitPriceSilver')) // 10000
+    amount = request.args.get('Amount')
+    auctionType = request.args.get('AuctionType')
+    tier = request.args.get('Tier')
+    subtier = request.args.get('Subtier')
+
+    # Проводим ту же трансформацию, что и в обучении модели
+    itemId = labelEncoderItemId.transform([itemId])[0]
+    auctionType = labelEncoderAuctionType.transform([auctionType])[0]
+    locationId = labelEncoderLocationId.transform([locationId])[0]
+
+    # Масштабируем
+    X_test = np.array([[orderId, itemId, locationId, qualityLevel,
+                      unitPriceSilver, amount, auctionType, tier, subtier]])
+    X_scaled = ss.transform(X_test)
+
+    # Используем метод модели predict для
+    # получения прогноза для доверенности данных
+    result = rfc.predict(X_scaled)
+    isTrusted = labelEncoderTrusted.inverse_transform([result])
+
+    # возвращаем результат
+    return jsonify(trusted=bool(isTrusted))
 
 
 if __name__ == '__main__':
