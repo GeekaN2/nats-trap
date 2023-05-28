@@ -27,7 +27,6 @@ with open('./build/neural_network.pkl', 'rb') as model_pkl:
 # Инициализируем приложение Flask
 app = Flask(__name__)
 
-ordersExample = '{"Orders":[{"Id":10682351244,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":70000,"Amount":1,"AuctionType":"offer","Expires":"2023-06-22T11:13:45.099077"},{"Id":10682701852,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":70000,"Amount":3,"AuctionType":"offer","Expires":"2023-06-22T13:12:28.209519"},{"Id":10683177971,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":70000,"Amount":3,"AuctionType":"offer","Expires":"2023-06-22T15:20:44.611154"},{"Id":10680540674,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":80000,"Amount":1,"AuctionType":"offer","Expires":"2023-06-21T23:47:13.677701"},{"Id":10681281094,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":80000,"Amount":3,"AuctionType":"offer","Expires":"2023-06-22T03:37:15.812508"},{"Id":10681562773,"ItemTypeId":"T1_HIDE","ItemGroupTypeId":"T1_HIDE","LocationId":3005,"QualityLevel":1,"EnchantmentLevel":0,"UnitPriceSilver":80000,"Amount":15,"AuctionType":"offer","Expires":"2023-06-22T05:17:23.248167"}]}'
 
 @app.errorhandler(Exception) 
 def handle_exception(error):
@@ -37,7 +36,6 @@ def handle_exception(error):
 def predict_relevance():
     orders = request.args.get('orders')
 
-    # orders = ordersExample
     orders = json.loads(orders)['Orders']
 
     parsed_orders = []
