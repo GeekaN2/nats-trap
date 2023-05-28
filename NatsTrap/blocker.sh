@@ -1,11 +1,12 @@
 #!/bin/bash
 
-usage() {
+if [[ $1 == "-h" || $1 == "--help" ]]; then
   echo "Usage: $0 <ip> <action>"
   echo "Block, accept or unblock NATS connections from IP address."
   echo "  <ip>          IP address to block, accept or unblock NATS connections from."
   echo "  <action>      Action to perform: block, accept, or unblock."
-}
+fi
+
 # Проверяем, что переданы два аргумента
 if [ $# -ne 2 ]; then
   echo "Usage: $0 <ip> <action>"
