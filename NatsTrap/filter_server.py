@@ -5,7 +5,7 @@ import joblib
 from flask import jsonify
 import json
 import re
-
+import subprocess
 
 # Импортируем энкодеры и скейлер
 labelEncoderItemId = joblib.load('./build/labelEncoderItemId.pkl')
@@ -27,6 +27,9 @@ with open('./build/neural_network.pkl', 'rb') as model_pkl:
 # Инициализируем приложение Flask
 app = Flask(__name__)
 
+def ban_by_ip(source_ip):
+    print(subprocess.run(["/root/nats-trap/NatsTrap/blocker.sh", source_ip, "block"], shell=True))
+
 
 @app.errorhandler(Exception) 
 def handle_exception(error):
@@ -35,6 +38,7 @@ def handle_exception(error):
 @app.route('/predict_relevance')
 def predict_relevance():
     orders = request.args.get('orders')
+    source_ip = request.args.get('srcip')
 
     orders = json.loads(orders)['Orders']
 
@@ -79,6 +83,10 @@ def predict_relevance():
     relevance =  round(np.count_nonzero(trusts) / len(trusts) * 100)
     isRelevant = RELEVANCE_PERCENTILE <= relevance
     print(isRelevant, relevance)
+
+    # Вызываем скрипт для блокировки пользователя по IP
+    if not bool(isRelevant):
+        ban_by_ip(source_ip)
 
     # Возвращаем результат
     return jsonify(isRelevant=bool(isRelevant), relevance=relevance, status='ok')
