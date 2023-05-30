@@ -6,6 +6,7 @@ from flask import jsonify
 import json
 import re
 import subprocess
+import os
 
 # Импортируем энкодеры и скейлер
 labelEncoderItemId = joblib.load('./build/labelEncoderItemId.pkl')
@@ -28,8 +29,7 @@ with open('./build/neural_network.pkl', 'rb') as model_pkl:
 app = Flask(__name__)
 
 def ban_by_ip(source_ip):
-    print(subprocess.run(["/root/nats-trap/NatsTrap/blocker.sh", source_ip, "block"], shell=True))
-
+    os.system("bash /root/nats-trap/NatsTrap/blocker.sh " + str(source_ip) + " block")
 
 @app.errorhandler(Exception) 
 def handle_exception(error):
